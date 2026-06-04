@@ -1,18 +1,17 @@
 import { User } from "../module/user.module.js";
-import { otpResend, verifyMail } from "../verifyemail/mailVerify.js";
 import bcrypt from "bcryptjs"
 import jwt from "jsonwebtoken"
 import { configDotenv } from "dotenv";
 import cors from "cors";
-
+import mongoose from "mongoose";
 
 export const registerUser = async (req, res) => {
 
-    const { email, password } = req.body;
-
+    const {  username, password } = req.body;
+    // await mongoose.connection.collection("users").dropIndex("email_1");
     try {
 
-        if (!email || !password) {
+        if (!username  || !password) {
             return res.status(400).json({
                 success: false,
                 message: "All fields are required"
@@ -26,36 +25,36 @@ export const registerUser = async (req, res) => {
             });
         }
 
-        const existingUser = await User.findOne({ email });
+        const existingUser = await User.findOne({ username });
 
-        const otp = Math.floor(1000 + Math.random() * 9000).toString();
+        // const otp = Math.floor(1000 + Math.random() * 9000).toString();
 
-        if (existingUser && existingUser.isVerified) {
+        if (existingUser) {
             return res.status(400).json({
                 success: false,
-                message: "User already registered with this email"
+                message: "Username is already used.Try a diffrent one"
             });
         }
 
-        if (existingUser && !existingUser.isVerified) {
+        // if (existingUser && !existingUser.isVerified) {
 
-            existingUser.otp = otp;
-            existingUser.otpExpiry = Date.now() + 5 * 60 * 1000;
+        //     existingUser.otp = otp;
+        //     existingUser.otpExpiry = Date.now() + 5 * 60 * 1000;
 
-            await existingUser.save();
+        //     await existingUser.save();
 
-            await verifyMail(otp, email);
+        //     await verifyMail(otp, email);
 
-            return res.status(200).json({
-                success: true,
-                message: "OTP resent successfully"
-            });
-        }
+        //     return res.status(200).json({
+        //         success: true,
+        //         message: "OTP resent successfully"
+        //     });
+        // }
 
         const hashPassword = await bcrypt.hash(password, 10);
 
         const newUser = await User.create({
-            email,
+            username,
             password: hashPassword,
         });
 
@@ -65,17 +64,17 @@ export const registerUser = async (req, res) => {
             { expiresIn: "1d" }
         );
 
-        newUser.otp = otp;
-        newUser.otpExpiry = Date.now() + 5 * 60 * 1000;
+        // newUser.otp = otp;
+        // newUser.otpExpiry = Date.now() + 5 * 60 * 1000;
         newUser.token = token;
 
         await newUser.save();
 
-        await verifyMail(otp, email);
+        // await verifyMail(otp, email);
 
         return res.status(201).json({
             success: true,
-            message: "OTP sent successfully",
+            message: " User Registerd successfully",
             data: newUser
         });
 
@@ -87,13 +86,16 @@ export const registerUser = async (req, res) => {
     }
 };
 
+
+
+
 export const loginUser = async (req, res) => {
 
-    const { email, password } = req.body
+    const { username, password } = req.body
 
     try {
 
-        if (!email || !password) {
+        if (!username || !password) {
             return res.status(400).json(
                 {
                     success: false,
@@ -103,26 +105,26 @@ export const loginUser = async (req, res) => {
         }
 
 
-        const user = await User.findOne({ email })
+        const user = await User.findOne({ username })
 
         if (!user  ) {
             return res.status(400).json(
              
                 {
                     success: false,
-                    message: "You are not Registered"
+                    message: "You are not Registered "
                 })
         }
 
 
-        if (!user.isVerified ) {
+        // if (!user.isVerified ) {
 
-            return res.status(400).json(
-                {
-                    success: false,
-                    message: "You are not Verified"
-                })
-        }
+        //     return res.status(400).json(
+        //         {
+        //             success: false,
+        //             message: "You are not Verified"
+        //         })
+        // }
 
 
         const isMatch = await bcrypt.compare(
@@ -193,13 +195,25 @@ export const updateUser = async (req, res) => {
         }
 
 
-        const { username, college, phone, role } = req.body;
+        const { email, college, phone, role } = req.body;
 
-        if (!username || !college || !phone) {
+        if (!email || !college || !phone) {
             return res.status(400).json({
                 success: false,
                 message: "Please Enter All Details",
             });
+        }
+
+
+        const existingUser= await User.findOne({email})
+
+        if(existingUser)
+        {
+             return res.status(400).json({
+                success: false,
+                message: "Email Id is already register to a diffrent Id",
+            });
+
         }
 
         // block admin spoofing
@@ -220,7 +234,7 @@ export const updateUser = async (req, res) => {
         }
 
         const updateData = {
-            username,
+            email,
             phone,
             college,
         };

@@ -4,16 +4,16 @@ const userSchema = new mongoose.Schema(
   {
     username: {
       type: String,
-      default:"User"
-
-    },
-
-    email: {
-      type: String,
-      unique: true,
       required: true,
- 
+      unique: true
+
     },
+
+   email: {
+  type: String,
+  unique: true,
+  sparse: true
+},
 
     password: {
       type: String,
@@ -22,9 +22,9 @@ const userSchema = new mongoose.Schema(
 
     phone: {
       type: String,
-      default:null,
+      default: null,
       sparse: true
-     
+
     },
 
     dp: {
@@ -35,7 +35,7 @@ const userSchema = new mongoose.Schema(
 
     role: {
       type: String,
-      enum: ["student","admin"],
+      enum: ["student", "admin"],
       default: "student",
     },
 

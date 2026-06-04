@@ -110,15 +110,15 @@ export const updateItem = async (req, res) => {
         }
 
         const {
-    name,
-    description,
-    category,
-    pricePerMonth,
-    sellingPrice,
-    pickupLocation,
-    owner,
-    images,
-} = req.body ;
+            name,
+            description,
+            category,
+            pricePerMonth,
+            sellingPrice,
+            pickupLocation,
+            owner,
+            images,
+        } = req.body;
 
         const updateData = {
             name,
